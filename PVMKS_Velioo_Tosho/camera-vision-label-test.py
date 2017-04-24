@@ -13,7 +13,6 @@ import base64
 import picamera
 import json
 import MySQLdb
-import thread
 from subprocess import call
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
@@ -26,13 +25,13 @@ def takephoto():
     camera.capture('image.jpg')
 
 def main():
-    takephoto() # First take a picture
+    #takephoto() # First take a picture
     """Run a label request on a single image"""
 
     credentials = GoogleCredentials.get_application_default()
     service = discovery.build('vision', 'v1', credentials=credentials)
 
-    with open('image.jpg', 'rb') as image:
+    with open('test.png', 'rb') as image:
         image_content = base64.b64encode(image.read())
         service_request = service.images().annotate(body={
             'requests': [{
@@ -61,30 +60,24 @@ def main():
 		print descriptions[i]
 
 	db = MySQLdb.connect("localhost", "root", "root", "music")
-	global curs=db.cursor()
+	curs=db.cursor()
 
 	print query
 
 	curs.execute (query)
 
 	print curs._last_executed
+
+	for reading in curs.fetchall():
+		print str(reading[0])+"	"+str(reading[1])+" 	"+str(reading[2])
+		file_path = "./songs/"
+		file_path+=str(reading[2])
+		call(["omxplayer", "-o", "both", file_path])
+		exit()
 		
-	thread.start_new_thread(showtime (1,));
-	thread.start_new_thread(showtime (0,));
-	
-	
+
 	"""./songs/50_Cent_In_Da_Club_Dirty.mp3"""
 
-def showtime (integerer,):
-	if integerer:
-		for reading in curs.fetchall():
-			print str(reading[0])+"	"+str(reading[1])+" 	"+str(reading[2])
-			file_path = "./songs/"
-			file_path+=str(reading[2])
-			call(["omxplayer", "-o", "both", file_path])
-
-		
-		
 if __name__ == '__main__':
 
     main()
